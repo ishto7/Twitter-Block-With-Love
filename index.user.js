@@ -417,19 +417,23 @@
     const response = await ajax.get(`https://x.com/i/api/graphql/OGScL-RC4DFMsRGOCjPR6g/Followers?variables=%7B%22userId%22%3A%22${userId}%22%2C%22count%22%3A${count}%2C%22includePromotedContent%22%3Afalse%7D&${paramsExtREQ}`);
     const data = response.data;
 
-    const users = data["data"]["user"]["result"]["timeline"]["timeline"]["instructions"].reduce((acc, instruction) => {
-        if (instruction.type === 'TimelineAddEntries') {
-            instruction.entries.forEach(entry => {
-                if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
-                    if (entry.content.itemContent.user_results && entry.content.itemContent.user_results.result && typeof entry.content.itemContent.user_results.result.rest_id !== "undefined") {
-                        const restId = entry.content.itemContent.user_results.result.rest_id;
-                        acc[restId] = true;
-                    }
-                }
-            });
-        }
-        return acc;
-    }, {});
+    const users = data['data']['user']['result']['timeline']['timeline']['instructions'].reduce((acc, instruction) => {
+      if (instruction.type === 'TimelineAddEntries') {
+        instruction.entries.forEach(entry => {
+          if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
+            const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
+            if (result && typeof result.rest_id !== 'undefined') {
+              if (result.legacy && result.legacy.blocking) {
+                return
+              }
+              const restId = result.rest_id
+              acc[restId] = true
+            }
+          }
+        })
+      }
+      return acc
+    }, {})
 
     const followers = Object.keys(users);
     return followers;
@@ -440,19 +444,23 @@
     const response = await ajax.get(`https://x.com/i/api/graphql/-A3YSkEdbCV0rpHTkYZXCA/Favoriters?variables=%7B%22tweetId%22%3A%22${tweetId}%22%2C%22includePromotedContent%22%3Atrue%7D&${paramsREQ}`);
         const data = response.data;
 
-        const users = data["data"]["favoriters_timeline"]["timeline"]["instructions"].reduce((acc, instruction) => {
-        if (instruction.type === 'TimelineAddEntries') {
-            instruction.entries.forEach(entry => {
-                if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
-                    if (entry.content.itemContent.user_results && entry.content.itemContent.user_results.result && typeof entry.content.itemContent.user_results.result.rest_id !== "undefined") {
-                        const restId = entry.content.itemContent.user_results.result.rest_id;
-                        acc[restId] = true;
-                    }
-                }
-            });
-        }
-        return acc;
-    }, {});
+    const users = data['data']['favoriters_timeline']['timeline']['instructions'].reduce((acc, instruction) => {
+      if (instruction.type === 'TimelineAddEntries') {
+        instruction.entries.forEach(entry => {
+          if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
+            const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
+            if (result && typeof result.rest_id !== 'undefined') {
+              if (result.legacy && result.legacy.blocking) {
+                return
+              }
+              const restId = result.rest_id
+              acc[restId] = true
+            }
+          }
+        })
+      }
+      return acc
+    }, {})
 
         const likers = Object.keys(users);
         return likers;
@@ -462,19 +470,23 @@
     const response = await ajax.get(`https://x.com/i/api/graphql/s6LwzbPawe8J04NldDYrQQ/Retweeters?variables=%7B%22tweetId%22%3A%22${tweetId}%22%2C%22includePromotedContent%22%3Atrue%7D&${paramsREQ}`);
         const data = response.data;
 
-        const users = data["data"]["retweeters_timeline"]["timeline"]["instructions"].reduce((acc, instruction) => {
-        if (instruction.type === 'TimelineAddEntries') {
-            instruction.entries.forEach(entry => {
-                if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
-                    if (entry.content.itemContent.user_results && entry.content.itemContent.user_results.result && typeof entry.content.itemContent.user_results.result.rest_id !== "undefined") {
-                        const restId = entry.content.itemContent.user_results.result.rest_id;
-                        acc[restId] = true;
-                    }
-                }
-            });
-        }
-            return acc;
-        }, {});
+    const users = data['data']['retweeters_timeline']['timeline']['instructions'].reduce((acc, instruction) => {
+      if (instruction.type === 'TimelineAddEntries') {
+        instruction.entries.forEach(entry => {
+          if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
+            const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
+            if (result && typeof result.rest_id !== 'undefined') {
+              if (result.legacy && result.legacy.blocking) {
+                return
+              }
+              const restId = result.rest_id
+              acc[restId] = true
+            }
+          }
+        })
+      }
+      return acc
+    }, {})
 
       const reposters = Object.keys(users);
       return reposters;
@@ -484,7 +496,7 @@
 
   async function fetch_list_members (listId) {
     const users = (await ajax.get(`/1.1/lists/members.json?list_id=${listId}`)).data.users
-    const members = users.map(u => u.id_str)
+    const members = users.filter(u => !u.blocking).map(u => u.id_str)
     return members
   }
 
@@ -515,6 +527,9 @@
     const users = tweetData.globalObjects.users
     for (const key in users) {
       if (users[key].screen_name === screen_name) {
+        if (users[key].blocking) {
+          return undefined
+        }
         return key
       }
     }
