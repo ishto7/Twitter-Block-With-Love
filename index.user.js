@@ -423,7 +423,9 @@
           if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
-              if (result.legacy && result.legacy.blocking) {
+              const isBlocked = (result.legacy && result.legacy.blocking) ||
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+              if (isBlocked) {
                 return
               }
               const restId = result.rest_id
@@ -450,7 +452,9 @@
           if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
-              if (result.legacy && result.legacy.blocking) {
+              const isBlocked = (result.legacy && result.legacy.blocking) ||
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+              if (isBlocked) {
                 return
               }
               const restId = result.rest_id
@@ -476,7 +480,9 @@
           if (entry.content && entry.content.entryType === 'TimelineTimelineItem' && entry.content.itemContent && entry.content.itemContent.itemType === 'TimelineUser') {
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
-              if (result.legacy && result.legacy.blocking) {
+              const isBlocked = (result.legacy && result.legacy.blocking) ||
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+              if (isBlocked) {
                 return
               }
               const restId = result.rest_id
@@ -496,7 +502,7 @@
 
   async function fetch_list_members (listId) {
     const users = (await ajax.get(`/1.1/lists/members.json?list_id=${listId}`)).data.users
-    const members = users.filter(u => !u.blocking).map(u => u.id_str)
+    const members = users.filter(u => !u.blocking && !(u.relationship_perspectives && u.relationship_perspectives.blocking)).map(u => u.id_str)
     return members
   }
 
@@ -527,7 +533,7 @@
     const users = tweetData.globalObjects.users
     for (const key in users) {
       if (users[key].screen_name === screen_name) {
-        if (users[key].blocking) {
+        if (users[key].blocking || (users[key].relationship_perspectives && users[key].relationship_perspectives.blocking)) {
           return undefined
         }
         return key
