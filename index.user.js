@@ -424,7 +424,8 @@
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
               const isBlocked = (result.legacy && result.legacy.blocking) ||
-                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking) ||
+                                (result.legacy && result.legacy.relationship_perspectives && result.legacy.relationship_perspectives.blocking)
               if (isBlocked) {
                 return
               }
@@ -453,7 +454,8 @@
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
               const isBlocked = (result.legacy && result.legacy.blocking) ||
-                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking) ||
+                                (result.legacy && result.legacy.relationship_perspectives && result.legacy.relationship_perspectives.blocking)
               if (isBlocked) {
                 return
               }
@@ -481,7 +483,8 @@
             const result = entry.content.itemContent.user_results && entry.content.itemContent.user_results.result
             if (result && typeof result.rest_id !== 'undefined') {
               const isBlocked = (result.legacy && result.legacy.blocking) ||
-                                (result.relationship_perspectives && result.relationship_perspectives.blocking)
+                                (result.relationship_perspectives && result.relationship_perspectives.blocking) ||
+                                (result.legacy && result.legacy.relationship_perspectives && result.legacy.relationship_perspectives.blocking)
               if (isBlocked) {
                 return
               }
@@ -502,7 +505,7 @@
 
   async function fetch_list_members (listId) {
     const users = (await ajax.get(`/1.1/lists/members.json?list_id=${listId}`)).data.users
-    const members = users.filter(u => !u.blocking && !(u.relationship_perspectives && u.relationship_perspectives.blocking)).map(u => u.id_str)
+    const members = users.filter(u => !u.blocking && !(u.relationship_perspectives && u.relationship_perspectives.blocking) && !(u.legacy && u.legacy.relationship_perspectives && u.legacy.relationship_perspectives.blocking)).map(u => u.id_str)
     return members
   }
 
@@ -533,7 +536,7 @@
     const users = tweetData.globalObjects.users
     for (const key in users) {
       if (users[key].screen_name === screen_name) {
-        if (users[key].blocking || (users[key].relationship_perspectives && users[key].relationship_perspectives.blocking)) {
+        if (users[key].blocking || (users[key].relationship_perspectives && users[key].relationship_perspectives.blocking) || (users[key].legacy && users[key].legacy.relationship_perspectives && users[key].legacy.relationship_perspectives.blocking)) {
           return undefined
         }
         return key
