@@ -368,7 +368,7 @@
   }
 
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
-  const DELAY_BETWEEN_REQUESTS = 1000
+  const DELAY_BETWEEN_REQUESTS = 100
 
   const ajax = axios.create({
     baseURL: 'https://api.x.com',
@@ -386,12 +386,9 @@
     async error => {
       const { config, response } = error
       if (response && response.status === 429) {
-        const errors = response.data.errors
-        if (errors && errors.some(e => e.code === 88)) {
-          console.log('[TBWL] Rate limit exceeded. Waiting 60s...')
-          await wait(60000)
-          return ajax(config)
-        }
+        console.log('[TBWL] Rate limit exceeded. Waiting 10s...')
+        await wait(10000)
+        return ajax(config)
       }
       return Promise.reject(error)
     }
